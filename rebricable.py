@@ -26,22 +26,31 @@ def add_url(left, right):
     return left.rstrip('/') + '/' + right.lstrip('/')
 
 
+class HttpProxy:
+    def __init__(self, addr, cafile):
+        self.addr = addr
+        self.cafile = cafile
+
+
 class Client:
-    def __init__(self, rebricable_config: dict):
+    def __init__(self, rebricable_config: dict, http_proxy=None):
         self.__api_key = rebricable_config.get("api_key")
         self.__headers = {
             'Accept': 'application/json',
             'Authorization': f'key {self.__api_key}'
         }
         self._base_url = rebricable_config.get("base_url")
-        ctx = ssl.create_default_context(
-            cafile="~/.mitmproxy/mitmproxy-ca-cert.pem")
+        if http_proxy:
+            ctx = ssl.create_default_context(cafile=http_proxy.cafile)
+            proxy = http_proxy.addr
+        else:
+            proxy = None
         # Create a reusable HTTP/2 client
         self.__client = httpx.Client(
             http2=True,
             verify=False,
             headers=self.__headers,
-            proxy="http://localhost:8080"
+            proxy=proxy
         )
         # self.__client._transport._pool._proxy = httpx.Proxy("http://localhost:8080")
         # Shared throttled request method
@@ -128,3 +137,24 @@ class User:
     def get_fetch_json(self, endpoint: str, form_data=None, json_data=None, params=None):
         endpoint = add_url(self._user_url, endpoint)
         return self.__client.get_fetch_json(endpoint, form_data, json_data, params)
+
+
+class LostParts:
+    # init with result of GET lost_parts/
+    def __init__(self, obj):
+        self.obj = obj
+
+    # get simple list of {part_num, color_id, quantity}
+    def to_part_list(self):
+        ret = []
+
+        for result in self.obj["results"]:
+            # each result is number of brick in given color
+            # if there are more of the same parts lost but various colors,
+            # each color is in separate result
+            ret.append({
+                "part_num": result["inv_part"]["part"]["part_num"],
+                "color_id": result["inv_part"]["color"]["id"],
+                "quantity": result["inv_part"]["lost_quantity"]
+            })
+        return ret
