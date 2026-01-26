@@ -64,3 +64,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+#/api/v3/lego/parts/{part_num}/colors/{color_id}/
+#{
+#  "part_img_url": "https://cdn.rebrickable.com/media/parts/ldraw/2/6212.png",
+#  "year_from": 2000,
+#  "year_to": 2002,
+#  "num_sets": 3,
+#  "num_set_parts": 7,
+#  "elements": [
+#    "4141350",
+#    "4189404",
+#    "621228"
+#  ]
+#}
