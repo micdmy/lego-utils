@@ -1,6 +1,6 @@
 import argparse
 import json
-from rebricable import Client, User, test_rate_limiter
+from rebricable import Client, User, test_rate_limiter, LostParts
 
 
 def load_config(config_path):
@@ -25,6 +25,7 @@ def cache_lost_parts(logged_user: User):
         return
     with open("./json_cache/lost_parts.json", 'w') as f:
         json.dump(res, f)
+    return res
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
         description="Load configuration from JSON file.")
     parser.add_argument('-c', '--config', default='./config.json',
                         help = 'Path to the configuration JSON file (default: ./config.json)')
-    parser.add_argument('-l, --update-lost-cache', default = True,
+    parser.add_argument('-l', '--update-lost-cache', default = True,
                         help = 'download list of lost parts from rebricable profile and save to json file (overwites old one)')
     args = parser.parse_args()
 
@@ -49,14 +50,27 @@ def main():
     if user.log_in() is None:
         return
     if args.update_lost_cache :
-        cache_lost_parts(user)
+        lost_parts = cache_lost_parts(user)
+    else :
+        lost_parts = json.load("./json_cache/lost_parts.json")
 
-    # res, error = client.get_fetch_json("lego/colors/1/")
+    lost_parts = LostParts(lost_parts)
+    sets_with_lost_parts = lost_parts.to_set_list()
+
+    print("sets with lost parts:")
+    print(sets_with_lost_parts)
+
+    
+
+    # res, error = client.get_fetch_json("lego/parts/6141/colors/25/")
     # if error:
     #     print(f"Error: {error}")
     #     return
     # print("Fetched:")
     # print(json.dumps(res, indent=2))
+
+
+
 
 
     #test_rate_limiter(client, "lego/colors")

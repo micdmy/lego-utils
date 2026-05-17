@@ -144,7 +144,9 @@ class LostParts:
     def __init__(self, obj):
         self.obj = obj
 
-    # get simple list of {part_num, color_id, quantity}
+    # get simple list of {part_num, color_id, lego_id, quantity}
+    # part_num is part identifier independent of color (used by rebricable)
+    # lego_id identifies part type and color combined (used in lego shop)
     def to_part_list(self):
         ret = []
 
@@ -155,6 +157,20 @@ class LostParts:
             ret.append({
                 "part_num": result["inv_part"]["part"]["part_num"],
                 "color_id": result["inv_part"]["color"]["id"],
+                "lego_id" : result["inv_part"]["color"]["element_id"],
                 "quantity": result["inv_part"]["lost_quantity"]
             })
+        return ret
+
+    def to_set_list(self):
+        ret = set()
+
+        for result in self.obj["results"]:
+            set_id = result["inv_part"]["set_num"]
+            set_and_subset = set_id.split('-', 1)
+            if len(set_and_subset) == 1:
+                set_and_subset.append("")
+            # splits <set_num>-<subset-num>
+            # or to fig-<fig_num> in case of figurines
+            ret.add((set_and_subset[0], set_and_subset[1]))
         return ret

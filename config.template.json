@@ -1,0 +1,10 @@
+{
+    "rebricable": {
+        "base_url": "https://rebrickable.com/api/v3/",
+        "api_key": "",
+        "user": {
+            "login": "",
+            "passwd": ""
+        }
+    }
+}
