@@ -2,6 +2,7 @@ import httpx
 import time
 import ssl
 from urllib.parse import quote_plus
+from collections import defaultdict
 
 # Rebricable throttles requests more frequent than 1 second
 
@@ -157,8 +158,10 @@ class LostParts:
             ret.append({
                 "part_num": result["inv_part"]["part"]["part_num"],
                 "color_id": result["inv_part"]["color"]["id"],
-                "lego_id" : result["inv_part"]["color"]["element_id"],
-                "quantity": result["inv_part"]["lost_quantity"]
+                "lego_id" : result["inv_part"]["element_id"],
+                "quantity": result["lost_quantity"],
+                "descr": result["inv_part"]["part"]["name"]
+                # "quantity": result["inv_part"]["quantity"] # this is quantity of this element in this color in set
             })
         return ret
 
@@ -173,4 +176,40 @@ class LostParts:
             # splits <set_num>-<subset-num>
             # or to fig-<fig_num> in case of figurines
             ret.add((set_and_subset[0], set_and_subset[1]))
+        return list(ret)
+
+    def to_part_by_set_dict(self):
+        ret = defaultdict(lambda: defaultdict(list))
+        for result in self.obj["results"]:
+            # each result is number of brick in given color
+            # if there are more of the same parts lost but various colors,
+            # each color is in separate result
+            set_id = get_set_id_not_figurine(result)
+            if set_id is None:
+                continue
+            lego_id = result["inv_part"]["element_id"]
+            el = {
+                "part_num": result["inv_part"]["part"]["part_num"],
+                "color_id": result["inv_part"]["color"]["id"],
+                "lego_id" : lego_id,
+                "quantity": result["lost_quantity"],
+                "descr": result["inv_part"]["part"]["name"]
+            }
+            if lego_id is None:
+                print(f"NO LEGO ID FOR {el}")
+            else:
+                ret[set_id][lego_id].append(el)
         return ret
+
+def filter_sets_not_figurines(set_list):
+    return [(set_id, subset_id) for (set_id, subset_id) in set_list if set_id != "fig"]
+
+def get_set_id_not_figurine(result):
+            set_id = result["inv_part"]["set_num"]
+            set_and_subset = set_id.split('-', 1)
+            if len(set_and_subset) == 1:
+                set_and_subset.append("")
+            if set_and_subset[0] == "fig":
+                return None
+            else:
+                return set_and_subset[0]

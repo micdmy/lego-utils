@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 httpx = {extras = ["http2"], version = "*"}
+selenium = "*"
 
 [dev-packages]
 

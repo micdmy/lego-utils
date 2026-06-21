@@ -11,6 +11,24 @@
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "args": "${command:pickArgs}"
-        }
+        },
+        {
+            "name": "lego webpage selenium",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lego.py",
+            "console": "integratedTerminal",
+            "args": "${command:pickArgs}"
+        },
+        {
+      "name": "Debug lego_rust",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/lego_rust",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "cargo build"
+    }
     ]
 }
