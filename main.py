@@ -44,6 +44,8 @@ def main():
                         help = 'prepare json_cache/lost_sets.json from lost cache (either updated or cached)')
     parser.add_argument('-b', '--update_lost_by_set', action="store_true",
                         help = 'prepare json_cache/lost_lego_parts_by_set.json from lost cache (either updated or cached)')
+    parser.add_argument('-f', '--filter_by_available_in_shop', action="store_true",
+                        help = '')
     args = parser.parse_args()
 
     config, error = load_config(args.config)
@@ -74,11 +76,22 @@ def main():
     #print("sets with lost parts:")
     #print(filter_sets_not_figurines(sets_with_lost_parts))
 
+    by_set = lost_parts.to_part_by_set_dict()
+
     if args.update_lost_by_set: 
-        by_set = lost_parts.to_part_by_set_dict()
         # print(by_set)
         with open("./json_cache/lost_lego_parts_by_set.json", 'w') as f:
             json.dump(by_set, f)
+    
+    if args.filter_by_available_in_shop:
+        f = open("./json_cache/lost_lego_part_by_set.json")
+        available = json.load(f)
+        for av_set, av_parts in available:
+            lo_parts = by_set[av_set] # if not found something wrong, because available should be subset of by_set
+            for av_part in av_parts: #iterate available parts list in set:
+                lego_id = av_part["lego_id"]
+                if lego_id in lo_parts: # available part is one of lost parts
+
 
 
     # res, error = client.get_fetch_json("lego/parts/6141/colors/25/")
